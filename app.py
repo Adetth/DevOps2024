@@ -1,23 +1,24 @@
-from  flask import Flask
+from flask import Flask, request, jsonify
+import pickle
+import numpy as np
+
+# Load the trained model from the pickle file
+with open('diabetes_model.pkl', 'rb') as file:
+    model = pickle.load(file)
+
+# Create a Flask app
 app = Flask(__name__)
 
-@app.route('/')
-def hello_world():
-    return 'Hello, World!'
+# Define an endpoint to make predictions
+@app.route('/predict', methods=['POST'])
+def predict():
+    data = request.get_json(force=True)
+    print("incoming data : ",data)  
+    input_data = np.array(data['input']).reshape(1, -1)
+    print("after reshape ",input_data)
+    prediction = model.predict(input_data)
+    return jsonify({'prediction': prediction[0]})
 
-@app.route('/welcome')
-def welcome():
-    return 'Welcome to ci cd with git hub actions and ec2!'
-
-@app.route('/add/<int:num1>/<int:num2>')
-def add(num1, num2):
-    return str(num1 + num2)
-
-@app.route('/sub/<int:num1>/<int:num2>')
-def sub(num1, num2):
-    return str(num1 - num2)
-
-
-
+# Run the Flask app
 if __name__ == '__main__':
-    app.run(host='0.0.0.0',port=5000)
+    app.run(port=5000, host='0.0.0.0')
